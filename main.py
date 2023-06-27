@@ -6,12 +6,9 @@ wipable = None
 count = 0
 
 for drive in str(checkDisc).strip().split('\\r\\r\\n'): # Filters through list
-    if '2' in drive:
+    if '2' in drive: # 2 means that the drive is a Removable Device (USB)
         drive_letter = drive.split(':')[0] # Gets drive letter
-        drive_type = drive.split(':')[1].strip() # Gets drive type (Not needed?)
-        
-        if drive_type == '2': 
-            wipable = True #Sets value of wipable (above) to true
+        wipable = True #Sets value of wipable (above) to true
 
 path = drive_letter + ":" # Sets drive path of device to scan
 quickScan = subprocess.Popen(["powershell.exe", "Start-MpScan -ScanPath " + path], stdout=sys.stdout) # Initializes scan
@@ -21,18 +18,18 @@ quickScan.communicate() # Returns output of process
     win32evtlogutil.ReportEvent("USBDetect", "0619", "1", strings="A virus has been detected.")
 
 """
-def myFmtCallback(command, modifier, arg):
+def myFmtCallback(command, modifier, arg): 
     print(command)
     return 1    # TRUE
 
-def format_drive():
+def format_drive(): # Formats the USB given the path
     fm = windll.LoadLibrary('fmifs.dll')
     FMT_CB_FUNC = WINFUNCTYPE(c_int, c_int, c_int, c_void_p)
     FMIFS_HARDDISK = 0xB
     fm.FormatEx(c_wchar_p(path), FMIFS_HARDDISK, c_wchar_p('FAT32'),
                 c_wchar_p('USB' + str(count)), True, c_int(0), FMT_CB_FUNC(myFmtCallback))
     
-win32evtlogutil.ReportEvent(
+win32evtlogutil.ReportEvent( # Creates system event if virus is detected (still needs to be implemented)
     appName= "USBDetect", 
     eventID= 10, 
     eventCategory=0,
