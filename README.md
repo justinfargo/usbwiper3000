@@ -1,3 +1,5 @@
 # usbwiper3000
 
-This is stolen code. It works.
+Goal: Create a simple script to manage potentially infected USB devices.
+
+To-Do: Create system alert, queue multiple devices
