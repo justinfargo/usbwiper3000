@@ -13,12 +13,11 @@ def watch_usb(): # Watches USB using WMI
         drive_letter = usb_device.TargetInstance.Caption.strip()[-1]
 
         if drive_letter:
-            print(f"USB Device Plugged In:")
-            print(f"Drive Letter: {drive_letter}")
-            print("----------")
+            print(f"USB Device Plugged In! ({drive_letter}) ")
             return drive_letter
 
 def scan(drive_letter): # Scans USB device using Windows Defender
+	print("Scanner initializing...")
 	scanProcess = subprocess.Popen(["powershell.exe", "Start-MpScan -ScanPath " + drive_letter], stdout=sys.stdout) # Initializes scan
 	scanProcess.communicate()
 
@@ -27,6 +26,7 @@ def myFmtCallback(command, modifier, arg): # Callback for the wiping function
     return 1    # TRUE
 
 def wipe_usb_drive(drive_letter): # Wiping function
+    print("Wipe initializing...")
     fm = windll.LoadLibrary('fmifs.dll')
     FMT_CB_FUNC = WINFUNCTYPE(c_int, c_int, c_int, c_void_p)
     FMIFS_HARDDISK = 0xB
@@ -37,3 +37,4 @@ if __name__ == "__main__":
     usb_drive_letter = watch_usb()
     scan(usb_drive_letter)
     wipe_usb_drive(usb_drive_letter)
+    print("Finished!")
