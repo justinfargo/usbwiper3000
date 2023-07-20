@@ -1,38 +1,44 @@
-import subprocess, sys, win32evtlogutil
-from ctypes import *
+import win32com.client, subprocess
 
-checkDisc = subprocess.check_output('wmic logicaldisk get DriveType, caption', shell=True) ## Reads connected disks
-wipable = None
-count = 0
+def watch_usb():
+    wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\CIMV2")
+    query = "SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"
+    watcher = wmi.ExecNotificationQuery(query)
 
-for drive in str(checkDisc).strip().split('\\r\\r\\n'): # Filters through list
-    if '2' in drive: # 2 means that the drive is a Removable Device (USB)
-        drive_letter = drive.split(':')[0] # Gets drive letter
-        wipable = True #Sets value of wipable (above) to true
+    print("Watching for USB devices...")
 
-path = drive_letter + ":" # Sets drive path of device to scan
-quickScan = subprocess.Popen(["powershell.exe", "Start-MpScan -ScanPath " + path], stdout=sys.stdout) # Initializes scan
-quickScan.communicate() # Returns output of process
+    while True:
+        usb_device = watcher.NextEvent()
+        drive_letter = usb_device.TargetInstance.Caption.strip()[-1]
 
-""" if quickScan == True: # if scanner returns virus? to-do!
-    win32evtlogutil.ReportEvent("USBDetect", "0619", "1", strings="A virus has been detected.")
+        if drive_letter:
+            print(f"USB Device Plugged In:")
+            print(f"Drive Letter: {drive_letter}")
+            print("----------")
+            return drive_letter
 
-"""
-def myFmtCallback(command, modifier, arg): 
-    print(command)
-    return 1    # TRUE
+def wipe_usb_drive(drive_letter):
+    try:
+        diskpart_script = f"""select disk {drive_letter}
+                            clean
+                            create partition primary
+                            format fs=ntfs quick
+                            assign"""
+        subprocess.run(["diskpart"], input=diskpart_script, encoding="utf-8", shell=True, check=True)
+        print(f"USB Drive ({drive_letter}) has been wiped and formatted.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error occurred: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
-def format_drive(): # Formats the USB given the path
-    fm = windll.LoadLibrary('fmifs.dll')
-    FMT_CB_FUNC = WINFUNCTYPE(c_int, c_int, c_int, c_void_p)
-    FMIFS_HARDDISK = 0xB
-    fm.FormatEx(c_wchar_p(path), FMIFS_HARDDISK, c_wchar_p('FAT32'),
-                c_wchar_p('USB' + str(count)), True, c_int(0), FMT_CB_FUNC(myFmtCallback))
-    
-win32evtlogutil.ReportEvent( # Creates system event if virus is detected (still needs to be implemented)
-    appName= "USBDetect", 
-    eventID= 10, 
-    eventCategory=0,
-    strings= ["A virus has been detected on device " + drive_letter + "." + "\nThis event will be logged and reported."])
+def scan(drive_letter):
+	scanProcess = subprocess.Popen(["powershell.exe", "Start-MpScan -ScanPath " + drive_letter], stdout=sys.stdout) # Initializes scan
+	scanProcess.communicate()
 
-format_drive()
+if __name__ == "__main__":
+    usb_drive_letter = watch_usb()
+    drive_letter(usb_drive_letter)
+    wipe_usb_drive(usb_drive_letter)
+
+
+
