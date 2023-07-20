@@ -1,6 +1,7 @@
-import win32com.client, subprocess
+import win32com.client, subprocess, sys
+from ctypes import *
 
-def watch_usb():
+def watch_usb(): # Watches USB using WMI
     wmi = win32com.client.GetObject("winmgmts:\\\\.\\root\\CIMV2")
     query = "SELECT * FROM __InstanceCreationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_USBHub'"
     watcher = wmi.ExecNotificationQuery(query)
@@ -17,28 +18,22 @@ def watch_usb():
             print("----------")
             return drive_letter
 
-def wipe_usb_drive(drive_letter):
-    try:
-        diskpart_script = f"""select disk {drive_letter}
-                            clean
-                            create partition primary
-                            format fs=ntfs quick
-                            assign"""
-        subprocess.run(["diskpart"], input=diskpart_script, encoding="utf-8", shell=True, check=True)
-        print(f"USB Drive ({drive_letter}) has been wiped and formatted.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error occurred: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-
-def scan(drive_letter):
+def scan(drive_letter): # Scans USB device using Windows Defender
 	scanProcess = subprocess.Popen(["powershell.exe", "Start-MpScan -ScanPath " + drive_letter], stdout=sys.stdout) # Initializes scan
 	scanProcess.communicate()
 
+def myFmtCallback(command, modifier, arg): # Callback for the wiping function
+    print(command)
+    return 1    # TRUE
+
+def wipe_usb_drive(drive_letter): # Wiping function
+    fm = windll.LoadLibrary('fmifs.dll')
+    FMT_CB_FUNC = WINFUNCTYPE(c_int, c_int, c_int, c_void_p)
+    FMIFS_HARDDISK = 0xB
+    fm.FormatEx(c_wchar_p(drive_letter + ":"), FMIFS_HARDDISK, c_wchar_p('EXFAT'),
+                c_wchar_p('USB'), True, c_int(0), FMT_CB_FUNC(myFmtCallback))
+
 if __name__ == "__main__":
     usb_drive_letter = watch_usb()
-    drive_letter(usb_drive_letter)
+    scan(usb_drive_letter)
     wipe_usb_drive(usb_drive_letter)
-
-
-
