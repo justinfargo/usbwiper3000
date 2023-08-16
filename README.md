@@ -1,5 +1,3 @@
 # usbwiper3000
 
-Goal: Create a simple script to manage potentially infected USB devices.
-
-To-Do: Create system alert, queue multiple devices
+A python script to manage multiple USB devices, scan via Windows Defender, and reformat in exFat. If a virus is detected, event log is created for alerting via Splunk, etc. Aug. 16 2023
