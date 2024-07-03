@@ -38,9 +38,6 @@ def scan(letter):
             strings = ["A virus has been detected."],
             data = b"A virus has been detected.",
         )
-        return
-    if not letter in isWiped:
-        isWiped.append(letter)
 
 def showConfirmationPopup(letter): # Tkinter Interface
     root = newTk()
@@ -81,8 +78,11 @@ while True:
             if win32file.GetDriveType(letter) == win32file.DRIVE_REMOVABLE: # check if the drive is removable
                 scannableDevices.append(letter)
                 if not letter in isWiped:
+                    # Scan the drive, ask to wipe
                     scan(letter)
                     wipeUSBDrive(letter)
+                    if not letter in isWiped:
+                        isWiped.append(letter)
                     print("Finished...")
         for device in isWiped:
             scannable = False
