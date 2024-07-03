@@ -75,10 +75,10 @@ def wipeUSBDrive(letter): # Wiping function
 while True:
     try:
         scannableDevices = []
-        drive_list = win32api.GetLogicalDriveStrings()
-        drive_list = drive_list.split("\x00")[0:-1]  # the last element is ""
-        for letter in drive_list:
-            if win32file.GetDriveType(letter) == win32file.DRIVE_REMOVABLE:# check if the drive is of type removable
+        driveList = win32api.GetLogicalDriveStrings()
+        driveList = driveList.split("\x00")[0:-1]  # the last element is ""
+        for letter in driveList:
+            if win32file.GetDriveType(letter) == win32file.DRIVE_REMOVABLE: # check if the drive is removable
                 scannableDevices.append(letter)
                 if not letter in isWiped:
                     scan(letter)
@@ -89,8 +89,8 @@ while True:
             for device2 in scannableDevices:
                 if device == device2:
                     scannable = True
-            if scannable == False:
+                    break
+            if not scannable:
                 isWiped.remove(device)
-        
     except Exception as e:
         print("Error... {0}".format(e))
