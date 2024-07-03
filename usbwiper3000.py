@@ -49,10 +49,6 @@ def showConfirmationPopup(letter): # Tkinter Interface
     root.quit()
     return result
 
-def wipeCallback(command, modifier, arg): # Callback for the wiping function
-    #print(command)
-    return 1    # TRUE
-
 def wipeUSBDrive(letter): # Wiping function
     fm = windll.LoadLibrary('fmifs.dll')
     FMT_CB_FUNC = WINFUNCTYPE(c_int, c_int, c_int, c_void_p)
@@ -64,7 +60,8 @@ def wipeUSBDrive(letter): # Wiping function
     print("Wiping device {0}...".format(letter))
     try:
         fm.FormatEx(c_wchar_p(letter), FMIFS_HARDDISK, c_wchar_p('EXFAT'),
-                    c_wchar_p('USB'), True, c_int(0), FMT_CB_FUNC(wipeCallback))
+            c_wchar_p('USB'), True, c_int(0), FMT_CB_FUNC(lambda com, arg, mod: 1))
+        ejectDrive(letter)
     except:
         print("Error wiping device {0}.".format(letter))
     
