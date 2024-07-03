@@ -2,6 +2,7 @@ import win32file, win32api, subprocess, win32evtlogutil, win32evtlog
 from ctypes import windll, WINFUNCTYPE, c_int, c_void_p, c_wchar_p
 from tkinter import messagebox, Tk
 
+# A list of drives that have been already wiped without being removed
 isWiped = []
 
 # Make a blank Tk window and return it
@@ -11,6 +12,7 @@ def newTk():
     root.iconbitmap(default='blank.ico')
     return root
 
+# Ejects a drive
 def ejectDrive(drive):
     ejectProcess = subprocess.Popen(["powershell.exe", "$driveEject = New-Object -comObject Shell.Application; $driveEject.Namespace(17).ParseName(\"{0}\").InvokeVerb({1})".format(drive, "\"Eject\"")])
     ejectProcess.communicate()
@@ -41,6 +43,8 @@ def scan(letter):
             data = b"A virus has been detected.",
         )
 
+# Show the user a popup window asking if they want to wipe a drive
+# Returns true for yes, false for no
 def showConfirmationPopup(letter):
     root = newTk()
     root.after(120_000, root.destroy)
@@ -50,6 +54,7 @@ def showConfirmationPopup(letter):
     root.quit()
     return result
 
+# Formats a drive with ExFat
 def wipeUSBDrive(letter): # Wiping function
     fm = windll.LoadLibrary('fmifs.dll')
     FMT_CB_FUNC = WINFUNCTYPE(c_int, c_int, c_int, c_void_p)
@@ -65,8 +70,8 @@ def wipeUSBDrive(letter): # Wiping function
         ejectDrive(letter)
     except:
         print("Error wiping device {0}.".format(letter))
-    
-    
+
+
 while True:
     try:
         scannableDevices = []
