@@ -6,6 +6,13 @@ from tkinter import messagebox
 
 isWiped = []
 
+# Make a blank Tk window and return it
+def newTk():
+    root = Tk()
+    root.withdraw()
+    root.iconbitmap(default='blank.ico')
+    return root
+
 # Scans a drive
 # Returns true if clean, false if a virus is detected
 def startDefenderScan(drive):
@@ -36,9 +43,7 @@ def scan(letter):
         isWiped.append(letter)
 
 def showConfirmationPopup(letter): # Tkinter Interface
-    root = tk.Tk()
-    root.withdraw()  # Hide the main window
-    root.iconbitmap(default='blank.ico')
+    root = newTk()
     root.after(120_000, root.destroy)
     result = messagebox.askyesno(title="", message="Do you want to wipe device {0}?".format(letter))
     if not result:
