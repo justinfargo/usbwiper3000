@@ -13,6 +13,10 @@ def newTk():
     root.iconbitmap(default='blank.ico')
     return root
 
+def ejectDrive(drive):
+    ejectProcess = subprocess.Popen(["powershell.exe", "$driveEject = New-Object -comObject Shell.Application; $driveEject.Namespace(17).ParseName(\"{0}\").InvokeVerb({1})".format(drive, "\"Eject\"")])
+    ejectProcess.communicate()
+
 # Scans a drive
 # Returns true if clean, false if a virus is detected
 def startDefenderScan(drive):
@@ -39,13 +43,12 @@ def scan(letter):
             data = b"A virus has been detected.",
         )
 
-def showConfirmationPopup(letter): # Tkinter Interface
+def showConfirmationPopup(letter):
     root = newTk()
     root.after(120_000, root.destroy)
     result = messagebox.askyesno(title="", message="Do you want to wipe device {0}?".format(letter))
     if not result:
-        ejectProcess = subprocess.Popen(["powershell.exe", "$driveEject = New-Object -comObject Shell.Application; $driveEject.Namespace(17).ParseName(\"{0}\").InvokeVerb({1})".format(letter, "\"Eject\"")])
-        ejectProcess.communicate()
+        ejectDrive(letter)
     root.quit()
     return result
 
