@@ -1,8 +1,6 @@
-from re import L
-import win32file, win32api, subprocess, sys, os, win32evtlogutil, win32evtlog, time, threading
-from ctypes import *
-import tkinter as tk
-from tkinter import messagebox
+import win32file, win32api, subprocess, win32evtlogutil, win32evtlog
+from ctypes import windll, WINFUNCTYPE, c_int, c_void_p, c_wchar_p
+from tkinter import messagebox, Tk
 
 isWiped = []
 
