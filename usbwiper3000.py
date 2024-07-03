@@ -6,24 +6,30 @@ from tkinter import messagebox
 
 isWiped = []
 
-def scan(letter): # Scans USB device using Windows Defender
-    count = sum([len(files) for r, d, files in os.walk(letter)])
+# Scans a drive
+# Returns true if clean, false if a virus is detected
+def startDefenderScan(drive):
+    print("Scan Start")
+    scanProcess = subprocess.Popen(["powershell.exe", "C:\\\"Program Files\"\\\"Windows Defender\"\\MpCmdRun -Scan -ScanType 3 -File " + drive], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+    stdout, stderr = scanProcess.communicate()
+    if "found no threats" in stdout or "0x80508023" in stdout: # the 0x805 code means the virus was already removed
+        return True
+    return False
+
+# Scans USB device using Windows Defender, if a virus is found show a popup
+def scan(letter):
     print("Scanning device {0}...".format(letter))
-    scanProcess = subprocess.Popen(["powershell.exe", "Start-MpScan -ScanPath " + letter], stdout=sys.stdout) # Initializes scan
-    scanProcess.communicate()
-    count2 = sum([len(files) for r, d, files in os.walk(letter)])
-    if count > count2:
-        root = tk.Tk()
-        root.withdraw()
-        root.iconbitmap(default='blank.ico')
-        root.after(5_000, root.destroy)
-        tk.messagebox.showwarning(title="", message="A virus has been detected on device {0}!".format(letter))
+    isClean = startDefenderScan(letter)
+    if not isClean:
+        root = newTk()
+        root.after(60_000, root.destroy)
+        messagebox.showwarning(title="", message="A virus has been detected on device {0}!".format(letter))
         win32evtlogutil.ReportEvent(
             "USB Wipe Script",
             1006,   
-            eventType=win32evtlog.EVENTLOG_WARNING_TYPE,
-            strings=["A virus has been detected."],
-            data=b"A virus has been detected.",
+            eventType = win32evtlog.EVENTLOG_WARNING_TYPE,
+            strings = ["A virus has been detected."],
+            data = b"A virus has been detected.",
         )
         return
     if not letter in isWiped:
