@@ -1,6 +1,7 @@
 import win32file, win32api, subprocess, win32evtlogutil, win32evtlog
 from ctypes import windll, WINFUNCTYPE, c_int, c_void_p, c_wchar_p
 from tkinter import messagebox, Tk
+from time import sleep
 
 # A list of drives that have been already wiped without being removed
 isWiped = []
@@ -73,6 +74,7 @@ def wipeUSBDrive(letter): # Wiping function
 
 
 while True:
+    sleep(0.5)
     try:
         scannableDevices = []
         driveList = win32api.GetLogicalDriveStrings()
