@@ -34,7 +34,6 @@ def scan(letter):
     isClean = startDefenderScan(letter)
     if not isClean:
         root = newTk()
-        root.after(60_000, root.destroy)
         messagebox.showwarning(title="", message="A virus has been detected on device {0}!".format(letter))
         win32evtlogutil.ReportEvent(
             "USB Wipe Script",
